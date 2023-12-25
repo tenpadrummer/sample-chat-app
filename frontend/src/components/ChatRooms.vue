@@ -6,6 +6,11 @@
         <router-link :to="`/rooms/${room.id}`">{{ room.name }}</router-link>
       </li>
     </ul>
+    <h3>チャットルーム作成</h3>
+    <input type="text" v-model="newRoomName" />
+    <div>
+      <button @click="createRoom">作成</button>
+    </div>
   </div>
 </template>
 
@@ -16,9 +21,11 @@ export default {
   data() {
     return {
       chatRooms: [],
+      newRoomName: '',
     };
   },
-  mounted() {
+  created() {
+    // コンポーネントが作成されたときに、チャットルーム一覧を取得する
     this.fetchChatRooms();
   },
   methods: {
@@ -27,6 +34,18 @@ export default {
         .get('http://localhost:8000/rooms')
         .then(response => {
           this.chatRooms = response.data;
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    },
+    createRoom() {
+      axios.post('http://localhost:8000/rooms', {
+        name: this.newRoomName,
+      })
+        .then(response => {
+          this.chatRooms.push(response.data);
+          this.newRoomName = '';
         })
         .catch(error => {
           console.error(error);
