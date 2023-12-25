@@ -25,6 +25,7 @@
 
 <script>
 import axios from 'axios';
+import { inject } from 'vue'; 
 
 export default {
   props: ['roomId'],
@@ -36,10 +37,26 @@ export default {
       newMessageContent: '',
     };
   },
+  setup() {
+    const cable = inject('cable');
+    return { cable };
+  },
   created() {
     this.fetchMessages();
+    this.createSubscription();
   },
   methods: {
+    createSubscription() {
+      this.subscription = this.cable.subscriptions.create(
+        { channel: 'RoomChannel', room_id: this.roomId },
+        {
+          received: message => {
+            console.log(message);
+            this.messages.push(message);
+          },
+        }
+      );
+    },
     fetchMessages() {
       axios
         .get(`http://localhost:8000/rooms/${this.roomId}/messages`)
@@ -57,6 +74,7 @@ export default {
           sender_name: this.senderName
         })
         .then(() => {
+          this.senderName = ''
           this.newMessageContent = ''
         })
         .catch((error) => {
